@@ -398,8 +398,6 @@ unsigned KModule::getConstantID(Constant *c, KInstruction* ki) {
   return id;
 }
 
-/***/
-
 KConstant::KConstant(llvm::Constant* _ct, unsigned _id, KInstruction* _ki) {
   ct = _ct;
   id = _id;

@@ -55,6 +55,11 @@ namespace llvm {
   class Value;
 }
 
+/*MOH*/
+namespace kleeExternal {
+    class Dump;
+}
+
 namespace klee {  
   class Array;
   struct Cell;
@@ -94,6 +99,8 @@ class Executor : public Interpreter {
   friend class StatsTracker;
   friend class MergeHandler;
   friend klee::Searcher *klee::constructUserSearcher(Executor &executor);
+  /*MOH*/
+  friend class kleeExternal::Dump;
 
 public:
   typedef std::pair<ExecutionState*,ExecutionState*> StatePair;

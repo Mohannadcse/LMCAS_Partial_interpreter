@@ -466,7 +466,7 @@ Executor::Executor(LLVMContext &ctx, const InterpreterOptions &opts,
       atMemoryLimit(false), inhibitForking(false), haltExecution(false),
       ivcEnabled(false), debugLogBuffer(debugBufferString) {
 
-
+	  llvm::outs() << "*** INSIDE Executor::Executor" <<"\n";
   const time::Span maxTime{MaxTime};
   if (maxTime) timers.add(
         std::make_unique<Timer>(maxTime, [&]{
@@ -2105,6 +2105,8 @@ Function* Executor::getTargetFunction(Value *calledVal, ExecutionState &state) {
 
 void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
   Instruction *i = ki->inst;
+  kmodule->visitedBBs.insert(i->getParent());
+//  llvm::outs() << "\texecuteInstruction:: " << *i->getParent() << "\n";
   switch (i->getOpcode()) {
     // Control flow
   case Instruction::Ret: {
@@ -2122,6 +2124,53 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
       assert(!caller && "caller set on initial stack frame");
       terminateStateOnExit(state);
     } else {
+	//// moh
+	/*for (StackFrame s : state.stack){
+		if ((!s.kf->function->getName().startswith("__") ||
+				!s.kf->function->getName().startswith("_") ||
+					!s.kf->function->getName().startswith("klee_")) ){
+			auto kf = s.kf;
+			std::vector<llvm::Type*> regtypes(kf->numInstructions);
+			kleeExternal::DLocals dl = { kf->function, { } };
+
+			if (s.kf->function->getName().equals("set_pool_val")){
+
+				for (unsigned index = 0; index < kf->numInstructions; index++) {
+					auto ki = kf->instructions[index];
+					auto ty = ki->inst->getType();
+					if (!ty->isVoidTy()) {
+						regtypes[index] = ty;
+					}
+				}
+				for (unsigned reg = 0; reg < s.kf->numInstructions; ++reg) {
+							auto &&value = s.locals[reg + kf->numArgs].value;
+							if (value.get()) {
+								if (klee::ConstantExpr *constantValue = llvm::dyn_cast<ConstantExpr>(
+										value)) {
+
+									if (llvm::PointerType *pt = dyn_cast<llvm::PointerType>(
+											regtypes[reg])) {
+										if (auto li = dyn_cast<llvm::AllocaInst>(
+												s.kf->instructions[reg]->inst)) {
+											if (!li->getAllocatedType()->isArrayTy()){
+//    												addAddress(pt->getElementType(), constantValue);
+												llvm::outs() << "LOCALS_B: " << *regtypes[reg] << " --- " <<  reg << " --- "
+														<< constantValue << " --- " << *s.kf->instructions[reg]->inst  << "\n";
+											dl.locals.push_back(std::make_tuple(regtypes[reg], reg,
+																							constantValue->getZExtValue(),
+																							s.kf->instructions[reg]->inst));
+											llvm::outs() << "\t" << pt->getElementType() << " --- " << constantValue->getZExtValue() << "\n";
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+//    			dumpSF.insert(dl);
+			}
+		}*/
+	/////
       state.popFrame();
 
       if (statsTracker)
@@ -3717,6 +3766,7 @@ void Executor::terminateStateEarly(ExecutionState &state,
 }
 
 void Executor::terminateStateOnExit(ExecutionState &state) {
+  llvm::outs() << "*** INSIDE Executor::terminateStateOnExit" <<"\n";
   if (!OnlyOutputStatesCoveringNew || state.coveredNew || 
       (AlwaysOutputSeeds && seedMap.count(&state)))
     interpreterHandler->processTestCase(state, 0, 0);

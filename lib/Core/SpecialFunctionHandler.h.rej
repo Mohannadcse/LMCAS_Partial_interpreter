@@ -1,0 +1,9 @@
+diff a/lib/Core/SpecialFunctionHandler.h b/lib/Core/SpecialFunctionHandler.h	(rejected hunks)
+@@ -135,6 +135,7 @@ namespace klee {
+     HANDLER(handleSetForking);
+     HANDLER(handleSilentExit);
+     HANDLER(handleStackTrace);
++    HANDLER(handleDumpMemory);
+     HANDLER(handleUnderConstrained);
+     HANDLER(handleWarning);
+     HANDLER(handleWarningOnce);

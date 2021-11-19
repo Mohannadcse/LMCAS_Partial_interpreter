@@ -1,0 +1,11 @@
+diff a/lib/Module/KModule.cpp b/lib/Module/KModule.cpp	(rejected hunks)
+@@ -22,6 +22,9 @@
+ #include "klee/Interpreter.h"
+ #include "klee/OptionCategories.h"
+ 
++/*MOH*/
++#include "klee/Internal/Module/LLVMPassManager.h"
++
+ #if LLVM_VERSION_CODE >= LLVM_VERSION(4, 0)
+ #include "llvm/Bitcode/BitcodeWriter.h"
+ #else

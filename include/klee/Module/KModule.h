@@ -93,6 +93,9 @@ namespace klee {
     // XXX change to KFunction
     std::set<llvm::Function*> escapingFunctions;
 
+    /*MOH*/
+    std::set<llvm::BasicBlock*> visitedBBs;
+    
     std::unique_ptr<InstructionInfoTable> infos;
 
     std::vector<llvm::Constant*> constants;

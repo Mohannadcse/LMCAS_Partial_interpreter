@@ -8,6 +8,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "SpecialFunctionHandler.h"
+#include "Dump.h"
 
 #include "ExecutionState.h"
 #include "Executor.h"
@@ -53,6 +54,16 @@ cl::opt<bool>
                               "condition given to klee_assume() rather than "
                               "emitting an error (default=false)"),
                      cl::cat(TerminationCat));
+/*MOH*/
+cl::opt<bool>
+DumpBBs("dump-bbs",
+        cl::desc("Dump visited basic blocks."),
+        cl::init(false));
+
+cl::opt<std::string>
+DumpFile("dump-file",
+         cl::desc("File in which to write the dump."));
+
 } // namespace
 
 /// \todo Almost all of the demands in this file should be replaced
@@ -111,6 +122,7 @@ static SpecialFunctionHandler::HandlerInfo handlerInfo[] = {
   add("klee_print_range", handlePrintRange, false),
   add("klee_set_forking", handleSetForking, false),
   add("klee_stack_trace", handleStackTrace, false),
+  add("klee_dump_memory", handleDumpMemory, false),
   add("klee_warning", handleWarning, false),
   add("klee_warning_once", handleWarningOnce, false),
   add("malloc", handleMalloc, true),
@@ -595,6 +607,31 @@ void SpecialFunctionHandler::handleStackTrace(ExecutionState &state,
                                               KInstruction *target,
                                               std::vector<ref<Expr> > &arguments) {
   state.dumpStack(outs());
+}
+
+void SpecialFunctionHandler::handleDumpMemory(ExecutionState &state,
+                                              KInstruction *target,
+                                              std::vector<ref<Expr> > &arguments) {
+  llvm::outs() << "*** INSIDE pecialFunctionHandler::handleDumpMemory" <<"\n";
+  llvm::errs() << "called klee_memory_dump\n";
+  if (DumpFile != "") {
+    std::ofstream dumpFile(DumpFile);
+    std::ofstream locals;
+    if (DumpBBs) {
+      kleeExternal::writeVisitedBBs(dumpFile, executor.kmodule.get());
+    }
+    else {
+      kleeExternal::Dump(executor, state).dumpState(dumpFile,locals);
+      /*moh
+	for (auto st : executor.states){
+	  kleeExternal::Dump(executor, state).dumpState(dumpFile,locals);
+	  for (auto s : st->stack)
+		  llvm::outs() << "$$FUNC: " << s.kf->function->getName().data() << "\n";
+      }*/
+    }
+  }
+  executor.terminateStateOnExit(state);
+  //executor.terminateStateEarly(state, "KLEE dump"); //moh
 }
 
 void SpecialFunctionHandler::handleWarning(ExecutionState &state,
