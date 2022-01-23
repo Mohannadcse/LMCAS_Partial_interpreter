@@ -850,7 +850,8 @@ void Dump::dumpState(std::ofstream &dumpFile, std::ofstream &primitiveLocals) {
             // struct cases This can be achieved by checking the type of oprnd
             // 0: 1- AllocInstr: normal struct 2- LoadInstr: ptr to struct 3-
             // GEPInstr: nested structs
-            auto I = cast<llvm::Instruction>(gep->getOperand(0));
+
+            if (auto I = dyn_cast<llvm::Instruction>(gep->getOperand(0)))
             switch (I->getOpcode()) {
             case llvm::Instruction::Alloca:
               handleStructPrimitiveElem(gep, cell.value);
